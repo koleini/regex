@@ -61,8 +61,6 @@ int main(int argc, char **argv)
        pcrecpp::RE("\\" + string(1, *it)).GlobalReplace("\\\\" + re, &arg);
     }
     
-    cout << endl << "escaped string: " << arg << endl;
-
     using ascii::char_;
   
     string::iterator frst = arg.begin();
