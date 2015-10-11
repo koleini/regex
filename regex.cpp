@@ -27,6 +27,16 @@ using namespace std;
 using namespace boost;
 using namespace boost::spirit;
 
+/*
+ * Notes:
+ * 
+ * - There is no instuction on handing token capture sequence indexes.
+ *   Therefore, it is ignored in the translation/error handling in the
+ *   current revision of the program.
+ * - It is assumed that syntax enforces token capture sequences not to
+ *   contain any spaces.
+ */
+
 int main(int argc, char **argv)
 {
   try {
@@ -41,6 +51,18 @@ int main(int argc, char **argv)
     string arg = argv[1];
     stringstream regex;
 
+    // escape regex special characters
+    string re_spec_chars = "\\-[]{}()*+?.,^$|#";
+    
+    for(string::iterator it=re_spec_chars.begin(); it != re_spec_chars.end(); it++)
+    {
+       string re = *it == '\\' ? "\\\\" : string(1, *it);
+       
+       pcrecpp::RE("\\" + string(1, *it)).GlobalReplace("\\\\" + re, &arg);
+    }
+    
+    cout << endl << "escaped string: " << arg << endl;
+
     using ascii::char_;
   
     string::iterator frst = arg.begin();
@@ -49,7 +71,7 @@ int main(int argc, char **argv)
     bool match = qi::parse(frst, last, 
       lexeme [ // don't skip space characters
       +( // matches token capture sequence - space limitation
-        (ascii::string("%{") >> qi::int_ >> char_('S') >> qi::int_ >> char_('}'))
+        (ascii::string("%\\{") >> qi::int_ >> char_('S') >> qi::int_ >> ascii::string("\\}"))
           [ phoenix::ref(regex) << "(\\w+)( {",
             phoenix::ref(regex) << qi::_4,
             phoenix::ref(regex) << "}(\\w+))*"
@@ -58,17 +80,17 @@ int main(int argc, char **argv)
         // matches token capture sequence - greedy
         // NOTE: we pass non-greedy modifier to regex engine.
         //  therefore, .*? represents a greedy match.
-        (ascii::string("%{") >> qi::int_ >> char_('G') >> char_('}'))
+        (ascii::string("%\\{") >> qi::int_ >> char_('G') >> ascii::string("\\}"))
           [ phoenix::ref(regex) << ".+?" ]
         |
         // matches token capture sequence with no modifier - non-greedy
-        (ascii::string("%{") >> qi::int_ >> char_('}'))
+        (ascii::string("%\\{") >> qi::int_ >> ascii::string("\\}"))
           [ phoenix::ref(regex) << ".+" ]
         |
         // macthes any character except "%" when follows by "{"
         // NOTE: parser macthes left to right. So this branch is taken
         // when the previous ones don't match. 
-        (char_ - (char_('%') >> char_('{')))
+        (char_ - (char_('%') >> ascii::string("\\}")))
           [ phoenix::ref(regex) << qi::_1 ]
        )
       ]
