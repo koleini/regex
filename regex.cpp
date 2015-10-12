@@ -40,8 +40,8 @@ using namespace boost::spirit;
 int main(int argc, char **argv)
 {
   try {
-	if (argc < 2)
-	{ // if no input is passed to the program
+    if (argc < 2)
+    { // if no input is passed to the program
       stringstream msg;
       msg << "Input expression is not provided." << endl
           << " Usage: " << argv[0] << " [\"exression\"]"<< endl;
