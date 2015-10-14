@@ -2,9 +2,10 @@ CXX=g++
 CXXFLAGS=-Wall -std=c++11
 NAME=regex
 LDLIBS=-lpcrecpp
+FILES=$(NAME).cpp tcs.cpp
 
-all: $(NAME).cpp 
-	$(CXX) $(CXXFLAGS) -o $(NAME) $(NAME).cpp $(LDLIBS)
+all: $(FILES)
+	$(CXX) $(CXXFLAGS) -o $(NAME) $(FILES) $(LDLIBS)
 
 clean:
 	rm -f $(NAME).o

@@ -13,19 +13,27 @@
  * ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
  * OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
  */
-
 #include <iostream>
 #include <string>
 #include <pcrecpp.h>
 #include <iomanip>
+#include <cctype>
+#include <sstream>
+#include <stdexcept>
 
+/*
 #include <boost/config/warning_disable.hpp>
 #include <boost/spirit/include/phoenix.hpp>
 #include <boost/spirit/include/qi.hpp>
+*/
+
+#include "tcs.h"
 
 using namespace std;
+/*
 using namespace boost;
 using namespace boost::spirit;
+*/
 
 /*
  * Notes:
@@ -48,9 +56,9 @@ int main(int argc, char **argv)
       throw runtime_error(msg.str());
     }
 
-    string arg = argv[1];
-    stringstream regex;
-
+    string arg = pcrecpp::RE("").QuoteMeta(argv[1]);
+   
+    /*
     // escape regex special characters
     string re_spec_chars = "\\-[]{}()*+?.,^$|#";
     
@@ -60,7 +68,13 @@ int main(int argc, char **argv)
        
        pcrecpp::RE("\\" + string(1, *it)).GlobalReplace("\\\\" + re, &arg);
     }
+    */
     
+    TokenCaptureSeq tcs;
+   
+    string regex = tcs.tcs_regex_replace(arg);
+    
+    /*
     using ascii::char_;
   
     string::iterator frst = arg.begin();
@@ -103,12 +117,13 @@ int main(int argc, char **argv)
       throw runtime_error(msg.str());
     }
     
-    cout << "RegEx: " << regex.str() << endl;
+    */
+    cout << "RegEx: " << regex << endl;
 
     pcrecpp::RE_Options opt;
     opt.set_ungreedy(true); // sets non-greedy option
 
-    pcrecpp::RE re(regex.str(), opt);
+    pcrecpp::RE re(regex, opt);
 
     for (string line; getline(cin, line);)
     // iterates over input line until receives EOF
@@ -120,6 +135,6 @@ int main(int argc, char **argv)
     cerr << "Error: " << e.what() << endl;
     return -1;
   }
-
+  
   return 0;
 }
