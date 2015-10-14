@@ -54,23 +54,26 @@ string TokenCaptureSeq::tcs_regex_replace(string arg)
 
   for(string::iterator strIndex=arg.begin(); strIndex != arg.end(); strIndex++)
   {
-    cIndex = strIndex;
-   
-    if (*cIndex == '\\' && *(cIndex + 1) == '%' && *(cIndex + 2) == '\\' && *(cIndex + 3) == '{')
-    {
-      string::iterator idx = cIndex;
-      cIndex += 4;
+    // we are assuming that %{ in the original input (appears in arg as \%\{) is a reserved
+    // character sequence for "token capture sequence"s. Therefore when parser reaches %{,
+    // it always looks for a tcs pattern, or throws a parse-error exception.
+    if (*strIndex == '\\' && *(strIndex + 1) == '%' && *(strIndex + 2) == '\\' && *(strIndex + 3) == '{')
+    { // common for all token capture sequences
+      cIndex = strIndex + 4;
+      // read tcs index
       string tcs_idx = intToken (cIndex, arg.end());
-      verify_parse_condition(cIndex == idx, arg, cIndex - arg.begin());
-      
+      // check if tcs index is non-empty
+      verify_parse_condition(!tcs_idx.length(), arg, cIndex - arg.begin());
+
       switch (*cIndex)
       {
         case 'S':
-        {
-          idx = ++cIndex;
-
+        { // matches token capture sequence - space limitation
+          ++cIndex;
+          // read space limit
           string space_limit = intToken (cIndex, arg.end());
-          verify_parse_condition(cIndex == idx || *cIndex != '\\' || *(cIndex + 1) != '}', arg, cIndex - arg.begin());
+          // check if space limit is non-empty
+          verify_parse_condition(!space_limit.length() || *cIndex != '\\' || *(cIndex + 1) != '}', arg, cIndex - arg.begin());
             
           regex << "(\\w+)( {" << space_limit << "}(\\w+))*";
           strIndex = cIndex + 1;
@@ -78,6 +81,9 @@ string TokenCaptureSeq::tcs_regex_replace(string arg)
         }
         case 'G':
         {
+          // matches token capture sequence - greedy
+          // NOTE: we pass non-greedy modifier to regex engine.
+          // therefore, .*? represents a greedy match.
           verify_parse_condition(*(cIndex + 1) != '\\' || *(cIndex + 2) != '}', arg, cIndex - arg.begin());
             
           regex << ".+?";
@@ -86,6 +92,7 @@ string TokenCaptureSeq::tcs_regex_replace(string arg)
         }
         case '\\':
         {
+          // matches token capture sequence with no modifier - non-greedy
           verify_parse_condition(*(cIndex + 1) != '}', arg, cIndex - arg.begin());
           regex << ".+";
           strIndex = cIndex + 1;
@@ -96,6 +103,7 @@ string TokenCaptureSeq::tcs_regex_replace(string arg)
       }
     }
     else
+      // macthes any character except '\' when follows by "%\{"
       regex << *strIndex;
   }
 

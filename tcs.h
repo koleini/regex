@@ -16,6 +16,7 @@
 
 using namespace std;
 
+// token capture sequence to regex converter
 class TokenCaptureSeq {
   public:
     string tcs_regex_replace(string);

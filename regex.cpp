@@ -56,6 +56,7 @@ int main(int argc, char **argv)
       throw runtime_error(msg.str());
     }
 
+    // quoting possible re metacharacters
     string arg = pcrecpp::RE("").QuoteMeta(argv[1]);
    
     /*
@@ -71,7 +72,8 @@ int main(int argc, char **argv)
     */
     
     TokenCaptureSeq tcs;
-   
+    
+    // create equivalent regular expression
     string regex = tcs.tcs_regex_replace(arg);
     
     /*
