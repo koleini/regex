@@ -21,19 +21,9 @@
 #include <sstream>
 #include <stdexcept>
 
-/*
-#include <boost/config/warning_disable.hpp>
-#include <boost/spirit/include/phoenix.hpp>
-#include <boost/spirit/include/qi.hpp>
-*/
-
 #include "tcs.h"
 
 using namespace std;
-/*
-using namespace boost;
-using namespace boost::spirit;
-*/
 
 /*
  * Notes:
@@ -59,67 +49,11 @@ int main(int argc, char **argv)
     // quoting possible re metacharacters
     string arg = pcrecpp::RE("").QuoteMeta(argv[1]);
    
-    /*
-    // escape regex special characters
-    string re_spec_chars = "\\-[]{}()*+?.,^$|#";
-    
-    for(string::iterator it=re_spec_chars.begin(); it != re_spec_chars.end(); it++)
-    {
-       string re = *it == '\\' ? "\\\\" : string(1, *it);
-       
-       pcrecpp::RE("\\" + string(1, *it)).GlobalReplace("\\\\" + re, &arg);
-    }
-    */
-    
     TokenCaptureSeq tcs;
     
     // create equivalent regular expression
     string regex = tcs.tcs_regex_replace(arg);
     
-    /*
-    using ascii::char_;
-  
-    string::iterator frst = arg.begin();
-    string::iterator last = arg.end();
-  
-    bool match = qi::parse(frst, last, 
-      lexeme [ // don't skip space characters
-      +( // matches token capture sequence - space limitation
-        (ascii::string("%\\{") >> qi::int_ >> char_('S') >> qi::int_ >> ascii::string("\\}"))
-          [ phoenix::ref(regex) << "(\\w+)( {",
-            phoenix::ref(regex) << qi::_4,
-            phoenix::ref(regex) << "}(\\w+))*"
-          ]
-        |
-        // matches token capture sequence - greedy
-        // NOTE: we pass non-greedy modifier to regex engine.
-        //  therefore, .*? represents a greedy match.
-        (ascii::string("%\\{") >> qi::int_ >> char_('G') >> ascii::string("\\}"))
-          [ phoenix::ref(regex) << ".+?" ]
-        |
-        // matches token capture sequence with no modifier - non-greedy
-        (ascii::string("%\\{") >> qi::int_ >> ascii::string("\\}"))
-          [ phoenix::ref(regex) << ".+" ]
-        |
-        // macthes any character except "%" when follows by "{"
-        // NOTE: parser macthes left to right. So this branch is taken
-        // when the previous ones don't match. 
-        (char_ - (char_('%') >> ascii::string("\\}")))
-          [ phoenix::ref(regex) << qi::_1 ]
-       )
-      ]
-      );
-    
-    if (!match || frst != last)
-    { // if parser doesn't match or parse the whole line
-      stringstream msg;
-      msg << "Parse error at input expression column " << (frst - arg.begin() + 1) << ":" << endl
-          << "'" << arg << "'" << endl
-          << std::setw(frst - arg.begin() + 2) << "^";
-      throw runtime_error(msg.str());
-    }
-    
-    */
     cout << "RegEx: " << regex << endl;
 
     pcrecpp::RE_Options opt;
